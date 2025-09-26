@@ -1,13 +1,14 @@
 package controllers
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"git-server/pkg/api"
 	"log"
 	"net/http"
+	"os"
 	"strings"
-
-	"git-server/pkg/api"
 )
 
 // LighthouseController handles Lighthouse (Filecoin) API operations
@@ -20,6 +21,25 @@ func NewLighthouseController(apiKey string) *LighthouseController {
 	return &LighthouseController{
 		lighthouseAPI: api.NewLighthouseAPI(apiKey),
 	}
+}
+
+func getKeyFromEnv() ([]byte, error) {
+	keyStr := os.Getenv("MY_SECRET_KEY")
+	if keyStr == "" {
+		return nil, fmt.Errorf("MY_SECRET_KEY not set")
+	}
+
+	key, err := base64.StdEncoding.DecodeString(keyStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid base64 key: %w", err)
+	}
+
+	// Must be 16, 24, or 32 bytes for AES
+	if l := len(key); l != 16 && l != 24 && l != 32 {
+		return nil, fmt.Errorf("invalid AES key size: %d bytes", l)
+	}
+
+	return key, nil
 }
 
 // UploadHandler handles file uploads to Lighthouse (Filecoin)
@@ -50,9 +70,15 @@ func (lc *LighthouseController) UploadHandler(w http.ResponseWriter, r *http.Req
 		fileName = header.Filename
 	}
 
+	key, err := getKeyFromEnv()
+
+	if err != nil {
+		http.Error(w, "Failed to get key from env", http.StatusBadRequest)
+	}
+
 	// Upload to Lighthouse
 	log.Printf("Uploading file '%s' to Lighthouse...", fileName)
-	uploadResponse, err := lc.lighthouseAPI.UploadFile(file, fileName)
+	uploadResponse, err := lc.lighthouseAPI.UploadFile(file, fileName, key)
 	if err != nil {
 		log.Printf("Failed to upload file: %v", err)
 		response := api.UploadResponse{
@@ -92,8 +118,14 @@ func (lc *LighthouseController) DownloadHandler(w http.ResponseWriter, r *http.R
 
 	log.Printf("Downloading file with CID: %s", cid)
 
+	key, err := getKeyFromEnv()
+
+	if err != nil {
+		http.Error(w, "Failed to get key from env", http.StatusBadRequest)
+	}
+
 	// Download from Lighthouse
-	fileContent, err := lc.lighthouseAPI.DownloadFile(cid)
+	fileContent, err := lc.lighthouseAPI.DownloadFile(cid, key)
 	if err != nil {
 		log.Printf("Failed to download file: %v", err)
 		response := api.DownloadResponse{
@@ -158,8 +190,14 @@ func (lc *LighthouseController) UploadTextHandler(w http.ResponseWriter, r *http
 	// Create a reader from the text content
 	reader := strings.NewReader(request.Content)
 
+	key, err := getKeyFromEnv()
+
+	if err != nil {
+		http.Error(w, "Failed to get key from env", http.StatusBadRequest)
+	}
+
 	// Upload to Lighthouse
-	uploadResponse, err := lc.lighthouseAPI.UploadFile(reader, request.Filename)
+	uploadResponse, err := lc.lighthouseAPI.UploadFile(reader, request.Filename, key)
 	if err != nil {
 		log.Printf("Failed to upload text content: %v", err)
 		response := api.UploadResponse{
@@ -196,8 +234,14 @@ func (lc *LighthouseController) GetFileInfoHandler(w http.ResponseWriter, r *htt
 
 	log.Printf("Getting file info for CID: %s", cid)
 
+	key, err := getKeyFromEnv()
+
+	if err != nil {
+		http.Error(w, "Failed to get key from env", http.StatusBadRequest)
+	}
+
 	// Get file info from Lighthouse
-	fileInfo, err := lc.lighthouseAPI.GetFileInfo(cid)
+	fileInfo, err := lc.lighthouseAPI.GetFileInfo(cid, key)
 	if err != nil {
 		log.Printf("Failed to get file info: %v", err)
 		response := map[string]interface{}{
@@ -248,10 +292,10 @@ func (lc *LighthouseController) HelpHandler(w http.ResponseWriter, r *http.Reque
 			"GET /lighthouse/help":         "Show this help message",
 		},
 		"examples": map[string]string{
-			"upload_file":    "curl -X POST -F 'file=@example.txt' http://localhost:8080/lighthouse/upload",
-			"download_file":  "curl 'http://localhost:8080/lighthouse/download?cid=QmXXX...' -o downloaded_file",
-			"upload_text":    "curl -X POST -H 'Content-Type: application/json' -d '{\"content\":\"Hello World\",\"filename\":\"hello.txt\"}' http://localhost:8080/lighthouse/upload-text",
-			"get_file_info":  "curl 'http://localhost:8080/lighthouse/file-info?cid=QmXXX...'",
+			"upload_file":   "curl -X POST -F 'file=@example.txt' http://localhost:8080/lighthouse/upload",
+			"download_file": "curl 'http://localhost:8080/lighthouse/download?cid=QmXXX...' -o downloaded_file",
+			"upload_text":   "curl -X POST -H 'Content-Type: application/json' -d '{\"content\":\"Hello World\",\"filename\":\"hello.txt\"}' http://localhost:8080/lighthouse/upload-text",
+			"get_file_info": "curl 'http://localhost:8080/lighthouse/file-info?cid=QmXXX...'",
 		},
 	}
 	json.NewEncoder(w).Encode(help)

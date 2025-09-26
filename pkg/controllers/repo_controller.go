@@ -5,8 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"git-server/pkg/server"
+
+	"github.com/gorilla/mux"
 )
 
 // RepoController handles repository management operations
@@ -47,7 +48,7 @@ func (rc *RepoController) CreateRepoHandler(w http.ResponseWriter, r *http.Reque
 // ListReposHandler handles listing all repositories
 func (rc *RepoController) ListReposHandler(w http.ResponseWriter, r *http.Request) {
 	repos := rc.gitServer.ListRepositories()
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "{\n  \"repositories\": [\n")
@@ -101,7 +102,7 @@ func (rc *RepoController) AddFileHandler(w http.ResponseWriter, r *http.Request)
 	// Create the file in memory (this is a simplified approach)
 	// In a real implementation, you'd need to handle the filesystem abstraction
 	log.Printf("Adding file '%s' to repository '%s'", filename, repoName)
-	
+
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "File '%s' added to repository '%s'\n", filename, repoName)
 }

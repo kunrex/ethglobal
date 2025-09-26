@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"fmt"
+	"git-server/pkg/crypto"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -50,54 +51,61 @@ type FileInfo struct {
 }
 
 // UploadFile uploads a file to Lighthouse (Filecoin)
-func (lh *LighthouseAPI) UploadFile(file io.Reader, filename string) (*UploadResponse, error) {
+func (lh *LighthouseAPI) UploadFile(file io.Reader, filename string, key []byte) (*UploadResponse, error) {
 	// Create multipart form data
-	var buf bytes.Buffer
-	writer := multipart.NewWriter(&buf)
-	
+	var plainBuf bytes.Buffer
+	writer := multipart.NewWriter(&plainBuf)
+
 	// Add file field
 	fileWriter, err := writer.CreateFormFile("file", filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create form file: %v", err)
 	}
-	
+
 	_, err = io.Copy(fileWriter, file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to copy file data: %v", err)
 	}
-	
+
 	writer.Close()
-	
+
+	cipherText, err := crypto.Encrypt(key, plainBuf.Bytes())
+	var cipherBuf bytes.Buffer
+	cipherBuf.Write(cipherText)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt file: %v", err)
+	}
+
 	// Create HTTP request to Lighthouse API
-	req, err := http.NewRequest("POST", "https://api.lighthouse.storage/api/v0/add", &buf)
+	req, err := http.NewRequest("POST", "https://api.lighthouse.storage/api/v0/add", &cipherBuf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
-	
+
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("Authorization", "Bearer "+lh.apiKey)
-	
+
 	// Send request
 	resp, err := lh.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload file: %v", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("lighthouse API error: %s", string(body))
 	}
-	
+
 	// Read response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %v", err)
 	}
-	
+
 	// Parse CID from response (Lighthouse returns just the CID string)
 	cid := strings.TrimSpace(string(body))
-	
+
 	return &UploadResponse{
 		Success: true,
 		CID:     cid,
@@ -106,51 +114,56 @@ func (lh *LighthouseAPI) UploadFile(file io.Reader, filename string) (*UploadRes
 }
 
 // DownloadFile downloads a file from Lighthouse (Filecoin)
-func (lh *LighthouseAPI) DownloadFile(cid string) ([]byte, error) {
+func (lh *LighthouseAPI) DownloadFile(cid string, key []byte) ([]byte, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://api.lighthouse.storage/api/v0/cat?arg=%s", cid), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
-	
+
 	req.Header.Set("Authorization", "Bearer "+lh.apiKey)
-	
+
 	// Send request
 	resp, err := lh.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download file: %v", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("lighthouse API error: %s", string(body))
 	}
-	
+
 	// Read file content
-	fileContent, err := io.ReadAll(resp.Body)
+	cipherBuf, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file content: %v", err)
 	}
-	
-	return fileContent, nil
+
+	plainBuf, err := crypto.Decrypt(key, cipherBuf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt file: %v", err)
+	}
+
+	return plainBuf, nil
 }
 
 // GetFileInfo retrieves information about a file stored on Lighthouse
-func (lh *LighthouseAPI) GetFileInfo(cid string) (*FileInfo, error) {
-	fileContent, err := lh.DownloadFile(cid)
+func (lh *LighthouseAPI) GetFileInfo(cid string, key []byte) (*FileInfo, error) {
+	fileContent, err := lh.DownloadFile(cid, key)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Determine file type based on content
 	contentType := http.DetectContentType(fileContent)
-	
+
 	fileInfo := &FileInfo{
 		CID:      cid,
 		Filename: fmt.Sprintf("file_%s", cid[:8]),
 		Size:     int64(len(fileContent)),
 		Type:     contentType,
 	}
-	
+
 	return fileInfo, nil
 }
