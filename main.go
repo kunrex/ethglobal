@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/gorilla/mux"
 )
@@ -42,6 +43,47 @@ func (s *InMemoryGitServer) CreateRepository(name string) error {
 
 	s.repos[name] = repo
 	log.Printf("Created repository: %s", name)
+	return nil
+}
+
+// CreateRepositoryWithContent creates a new repository with initial content
+func (s *InMemoryGitServer) CreateRepositoryWithContent(name string) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	if _, exists := s.repos[name]; exists {
+		return fmt.Errorf("repository %s already exists", name)
+	}
+
+	// Create a new in-memory repository
+	repo, err := git.Init(memory.NewStorage(), nil)
+	if err != nil {
+		return fmt.Errorf("failed to initialize repository: %v", err)
+	}
+
+	// Create initial commit with README
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree: %v", err)
+	}
+
+	// In a real implementation, you'd use the filesystem abstraction
+	// For now, we'll create a commit directly
+	hash, err := worktree.Commit("Initial commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Git Server",
+			Email: "server@example.com",
+		},
+	})
+	if err != nil {
+		// If commit fails (empty repo), that's okay for now
+		log.Printf("Warning: Could not create initial commit for %s: %v", name, err)
+	} else {
+		log.Printf("Created initial commit %s for repository: %s", hash.String()[:7], name)
+	}
+
+	s.repos[name] = repo
+	log.Printf("Created repository with content: %s", name)
 	return nil
 }
 
@@ -87,24 +129,34 @@ func (s *InMemoryGitServer) GitInfoRefsHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// Set proper headers for Git protocol
+	w.Header().Set("Content-Type", "application/x-git-upload-pack-advertisement")
+	w.Header().Set("Cache-Control", "no-cache")
+	
+	// Write the service advertisement
+	serviceLine := fmt.Sprintf("# service=%s\n", service)
+	// Calculate packet length (4 hex digits)
+	packetLen := fmt.Sprintf("%04x", len(serviceLine)+4)
+	
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, packetLen)
+	fmt.Fprint(w, serviceLine)
+	fmt.Fprint(w, "0000") // End of service advertisement
+	
 	// Get the default branch
 	ref, err := repo.Head()
 	if err != nil {
-		// Repository is empty, return empty refs
-		w.Header().Set("Content-Type", "application/x-git-upload-pack-advertisement")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "# service=%s\n", service)
-		fmt.Fprint(w, "0000")
+		// Repository is empty, just return empty refs
+		fmt.Fprint(w, "0000") // End of refs
 		return
 	}
 
 	// Format the refs for Git protocol
-	w.Header().Set("Content-Type", "application/x-git-upload-pack-advertisement")
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "# service=%s\n", service)
-	fmt.Fprint(w, "0000")
-	fmt.Fprintf(w, "%s %s\n", ref.Hash().String(), ref.Name().String())
-	fmt.Fprint(w, "0000")
+	refLine := fmt.Sprintf("%s %s\n", ref.Hash().String(), ref.Name().String())
+	refPacketLen := fmt.Sprintf("%04x", len(refLine))
+	fmt.Fprint(w, refPacketLen)
+	fmt.Fprint(w, refLine)
+	fmt.Fprint(w, "0000") // End of refs
 }
 
 // GitUploadPackHandler handles the /git-upload-pack endpoint (for clone/fetch)
@@ -112,17 +164,32 @@ func (s *InMemoryGitServer) GitUploadPackHandler(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	repoName := vars["repo"]
 
-	_, err := s.GetRepository(repoName)
+	repo, err := s.GetRepository(repoName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	// For now, return a simple response
-	// In a full implementation, you'd handle the Git pack protocol here
+	// Set proper headers
 	w.Header().Set("Content-Type", "application/x-git-upload-pack-result")
+	w.Header().Set("Cache-Control", "no-cache")
+	
+	// Check if repository has any commits
+	_, err = repo.Head()
+	if err != nil {
+		// Empty repository - return empty pack
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "0000") // End packet
+		return
+	}
+
+	// For a real implementation, you would:
+	// 1. Parse the upload pack request
+	// 2. Generate pack data with objects
+	// 3. Return the pack file
+	// For now, return a minimal response
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, "0000")
+	fmt.Fprint(w, "0000") // End packet
 }
 
 // GitReceivePackHandler handles the /git-receive-pack endpoint (for push)

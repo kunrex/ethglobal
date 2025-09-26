@@ -77,8 +77,10 @@ curl -X POST "http://localhost:8080/test-repo/files" \
 
 #### Clone a Repository (Git)
 ```bash
-git clone http://localhost:8080/test-repo.git
+git clone http://localhost:8080/test-repo
 ```
+
+**Note:** Use the repository name without `.git` suffix for cloning.
 
 ## Architecture
 
@@ -107,10 +109,16 @@ To build the server:
 go build -o git-server main.go
 ```
 
-To run tests (if you add them):
+To run the demo:
 
 ```bash
-go test ./...
+./demo.sh
+```
+
+To run tests:
+
+```bash
+./test.sh
 ```
 
 ## License
