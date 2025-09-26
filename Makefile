@@ -14,6 +14,10 @@ run: build
 test:
 	./test.sh
 
+# Test Lighthouse functionality
+test-lighthouse:
+	./test-lighthouse.sh
+
 # Clean build artifacts
 clean:
 	rm -f git-server

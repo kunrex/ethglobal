@@ -84,12 +84,21 @@ git clone http://localhost:8080/test-repo
 
 ## Architecture
 
-The server consists of:
+The server is organized into a clean package structure:
 
+### Package Structure:
+- **`pkg/server/`**: Core Git server implementation with in-memory storage
+- **`pkg/controllers/`**: HTTP handlers for repository and Lighthouse operations
+- **`pkg/api/`**: Lighthouse (Filecoin) API client implementation
+- **`pkg/routes/`**: Route configuration and setup
+- **`main.go`**: Application entry point and server startup
+
+### Key Components:
 1. **InMemoryGitServer**: Main server struct that manages repositories in memory
 2. **Repository Storage**: Uses `go-git`'s memory storage backend
 3. **HTTP Handlers**: Handle both Git protocol and management operations
-4. **Concurrent Access**: Thread-safe operations using mutex locks
+4. **Lighthouse Integration**: Filecoin storage via Lighthouse API
+5. **Concurrent Access**: Thread-safe operations using mutex locks
 
 ## Limitations
 
@@ -120,6 +129,14 @@ To run tests:
 ```bash
 ./test.sh
 ```
+
+To test Lighthouse functionality:
+
+```bash
+./test-lighthouse.sh
+```
+
+**Note:** Set `LIGHTHOUSE_API_KEY` environment variable to enable Filecoin storage features.
 
 ## License
 
