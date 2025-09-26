@@ -12,9 +12,9 @@ const CHAIN_ID = parseInt(process.env.CHAIN_ID)
 
 const config = {
     solidity: "0.8.17",
-    defaultNetwork: "Calibration",
+    defaultNetwork: "calibration",
     networks: {
-        Calibration: {
+        calibration: {
             chainId: CHAIN_ID,
             url: CALIBRATION_URL,
             accounts: [PRIVATE_KEY]

@@ -1,7 +1,7 @@
 node_modules/
-artifacts/
+artifacts/*
 !artifacts/.gitkeep
-cache/
+cache/*
 !cache/.gitkeep
 coverage/
 .env
