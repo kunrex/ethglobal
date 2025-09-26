@@ -3,15 +3,11 @@ package eth
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
+	"git-server/pkg/types/eth"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-type AnonymousWallet struct {
-	Address    string `json:"address"`
-	PrivateKey string `json:"privateKey"`
-}
-
-func createWallet() (*AnonymousWallet, error) {
+func createWallet() (*eth.AnonymousWallet, error) {
 	privateKey, err := crypto.GenerateKey()
 	if err != nil {
 		return nil, err
@@ -23,12 +19,8 @@ func createWallet() (*AnonymousWallet, error) {
 	publicKey := privateKey.Public().(*ecdsa.PublicKey)
 	address := crypto.PubkeyToAddress(*publicKey).Hex()
 
-	return &AnonymousWallet{
+	return &eth.AnonymousWallet{
 		Address:    address,
 		PrivateKey: privateKeyHex,
 	}, nil
-}
-
-func linkWallet() {
-	
 }
