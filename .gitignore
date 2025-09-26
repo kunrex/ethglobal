@@ -1,2 +1,5 @@
 .env
 git-server
+
+.DS_Store
+.idea
