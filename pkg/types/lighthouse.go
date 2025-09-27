@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/json"
+	"ethglobal/pkg/utils"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -16,16 +17,12 @@ type LighthouseClient struct {
 	Client      *http.Client
 }
 
-func (lh *LighthouseClient) UploadFile(plainBuf []byte, key []byte) (*UploadResponse, error) {
-	//cipherText, err := utils.Encrypt(key, plainBuf)
-	cipherText := plainBuf
+func (lh *LighthouseClient) UploadFile(plainBuf []byte, encryptionKey []byte) (*UploadResponse, error) {
+	cipherText, err := utils.Encrypt(encryptionKey, plainBuf)
+
 	var cipherBuf bytes.Buffer
 	cipherBuf.Write(cipherText)
-	//if err != nil {
-	//	return nil, fmt.Errorf("failed to encrypt file: %v", err)
-	//}
 
-	// Prepare multipart form
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
 
@@ -123,8 +120,8 @@ func (lh *LighthouseClient) DownloadFile(cid string, key []byte) ([]byte, error)
 	return plainBuf, nil
 }
 
-func (lh *LighthouseClient) GetFileInfo(cid string, key []byte) (*FileInfo, error) {
-	fileContent, err := lh.DownloadFile(cid, key)
+func (lh *LighthouseClient) GetFileInfo(cid string, encryptionKey []byte) (*FileInfo, error) {
+	fileContent, err := lh.DownloadFile(cid, encryptionKey)
 	if err != nil {
 		return nil, err
 	}

@@ -11,18 +11,15 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func initKeystoreWallet(ks *keystore.KeyStore) (*accounts.Account, error) {
+func initKeystoreWallet(ks *keystore.KeyStore, configuration *types.Configuration) (*accounts.Account, error) {
 	switch len(ks.Accounts()) {
 	case 0:
 		{
-			//ui or tui
-			password := "secret"
-			account, err := ks.NewAccount(password)
+			account, err := ks.NewAccount("")
 
 			if err != nil {
 				return nil, err
 			}
-
 			return &account, nil
 		}
 	case 1:
@@ -39,7 +36,7 @@ func initContract(contractAddress common.Address, client *ethclient.Client) (*ab
 
 func InitContractActions(configuration *types.Configuration) (*types.ContractActions, *context.Context, error) {
 	ks := keystore.NewKeyStore(configuration.KeystoreDirectory, keystore.StandardScryptN, keystore.StandardScryptP)
-	accountPtr, err := initKeystoreWallet(ks)
+	accountPtr, err := initKeystoreWallet(ks, configuration)
 	if err != nil {
 		return nil, nil, err
 	}

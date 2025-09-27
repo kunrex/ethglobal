@@ -54,5 +54,7 @@ func LoadConfig() types.Configuration {
 
 	readString("JSON_RPC", &configuration.JsonRPC)
 
+	readString("ENCRYPTION_KEY", &configuration.EncryptionKey)
+
 	return configuration
 }

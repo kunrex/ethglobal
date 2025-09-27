@@ -17,4 +17,6 @@ type Configuration struct {
 	ContactAddress string
 
 	KeystoreDirectory string
+
+	EncryptionKey string
 }

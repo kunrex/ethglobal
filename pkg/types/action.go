@@ -6,7 +6,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"log"
 	"math/big"
 	"time"
 )
@@ -24,8 +23,6 @@ type ContractActions struct {
 }
 
 func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) (bool, []byte, error) {
-
-	log.Printf("%v", c.RootContext == nil)
 	ctx, cancel := context.WithTimeout(c.RootContext, c.GetTimeout)
 	defer cancel()
 
@@ -43,9 +40,7 @@ func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) (bool, []
 }
 
 func (c *ContractActions) SetProjectCID(repositoryIdentifier [32]byte, cid []byte) (string, error) {
-	log.Print("gell")
-
-	err := c.Keystore.Unlock(c.Account, "secret")
+	err := c.Keystore.Unlock(c.Account, "")
 	if err != nil {
 		panic(err)
 	}

@@ -14,6 +14,15 @@ type Controller struct {
 
 func (c Controller) PushColdStorage(repository string, dotGitFile string) (string, error) {
 	hash := utils.SHA256(repository)
+	exists, _, err := c.ActionContracts.GetProjectCID(hash)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+
+	}
+
 	bytes, err := os.ReadFile(dotGitFile)
 	if err != nil {
 		return "", err
@@ -36,11 +45,15 @@ func (c Controller) PushColdStorage(repository string, dotGitFile string) (strin
 	return transactionId, nil
 }
 
+func retrieveColdStorageBytes(repository string, dotGitFile string) (string, error) {
+	
+}
+
 func (c Controller) RetrieveColdStorage(repository string, output string) error {
 	hash := utils.SHA256(repository)
 	exists, cid, err := c.ActionContracts.GetProjectCID(hash)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if !exists {
