@@ -1,7 +1,7 @@
 package config
 
 import (
-	"git-server/pkg/types"
+	"ethglobal/pkg/types"
 	"github.com/joho/godotenv"
 	"log"
 	"math/big"

@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 	"errors"
-	"git-server/pkg/abi"
-	"git-server/pkg/types"
+	"ethglobal/pkg/abi"
+	"ethglobal/pkg/types"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"

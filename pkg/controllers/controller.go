@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"errors"
-	"git-server/pkg/types"
-	"git-server/pkg/utils"
+	"ethglobal/pkg/types"
+	"ethglobal/pkg/utils"
 	"os"
 )
 

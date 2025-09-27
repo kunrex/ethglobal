@@ -6,7 +6,7 @@ echo ""
 
 # Check if server is running
 if ! curl -s http://localhost:8080/repos > /dev/null; then
-    echo "❌ Server is not running. Please start it with: ./git-server"
+    echo "❌ Server is not running. Please start it with: ./ethglobal"
     exit 1
 fi
 

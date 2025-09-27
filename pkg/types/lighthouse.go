@@ -2,8 +2,8 @@ package types
 
 import (
 	"bytes"
+	"ethglobal/pkg/utils"
 	"fmt"
-	"git-server/pkg/utils"
 	"io"
 	"net/http"
 	"strings"

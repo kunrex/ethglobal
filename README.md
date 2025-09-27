@@ -115,7 +115,7 @@ This is a simplified implementation for demonstration purposes. A production Git
 To build the server:
 
 ```bash
-go build -o git-server main.go
+go build -o ethglobal main.go
 ```
 
 To run the demo:

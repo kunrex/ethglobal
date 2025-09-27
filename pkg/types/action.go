@@ -2,7 +2,7 @@ package types
 
 import (
 	"context"
-	"git-server/pkg/abi"
+	"ethglobal/pkg/abi"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"

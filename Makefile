@@ -4,11 +4,11 @@
 
 # Build the server
 build:
-	go build -o git-server main.go
+	go build -o ethglobal main.go
 
 # Run the server
 run: build
-	./git-server
+	./ethglobal
 
 # Run tests
 test:
@@ -20,7 +20,7 @@ test-lighthouse:
 
 # Clean build artifacts
 clean:
-	rm -f git-server
+	rm -f ethglobal
 
 # Install dependencies
 deps:
@@ -29,7 +29,7 @@ deps:
 # Run with custom port
 run-port:
 	@read -p "Enter port (default 8080): " port; \
-	PORT=$${port:-8080} ./git-server
+	PORT=$${port:-8080} ./ethglobal
 
 # Help
 help:

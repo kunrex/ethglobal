@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"errors"
+	"ethglobal/pkg/config"
+	"ethglobal/pkg/controllers"
+	"ethglobal/pkg/types"
 	"fmt"
-	"git-server/pkg/config"
-	"git-server/pkg/controllers"
-	"git-server/pkg/types"
 	"github.com/spf13/cobra"
 	"log"
 	"net/http"
