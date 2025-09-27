@@ -101,7 +101,9 @@ func main() {
 		},
 	}
 
-	var root = &cobra.Command{}
+	var root = &cobra.Command{
+		Use: "ccg",
+	}
 
 	root.AddCommand(push)
 	root.AddCommand(pull)
