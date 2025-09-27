@@ -2,7 +2,7 @@ package main
 
 import (
 	"git-server/pkg/abi"
-	"git-server/pkg/contracts"
+	"git-server/pkg/eth"
 	"git-server/pkg/routes"
 	"git-server/pkg/server"
 	"git-server/pkg/types"
@@ -40,7 +40,7 @@ func main() {
 	// (You might want to use a “master” wallet here for contract writes if needed)
 	masterWallet := ProjectWallets["master"]
 	if masterWallet == nil {
-		masterWallet, err = contracts.CreateWallet() // Used ONLY for setting up the contract if needed
+		masterWallet, err = eth.CreateWallet() // Used ONLY for setting up the contract if needed
 		if err != nil {
 			log.Fatalf("Error creating master wallet: %v", err)
 		}
@@ -50,7 +50,7 @@ func main() {
 		}
 	}
 
-	contract, err := contracts.CreateContract(masterWallet, client)
+	contract, err := eth.CreateContract(masterWallet, client)
 	if err != nil {
 		log.Fatalf("Error binding contract: %v", err)
 	}

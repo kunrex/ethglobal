@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"git-server/pkg/api"
-	"git-server/pkg/contracts"
+	"git-server/pkg/eth"
 	"git-server/pkg/main"
 	"git-server/pkg/utils"
 	"log"
@@ -57,7 +57,7 @@ func (lc *LighthouseController) UploadHandler(w http.ResponseWriter, r *http.Req
 	var err error
 	projectWallet := main.ProjectWallets[repoName]
 	if projectWallet == nil {
-		projectWallet, err = contracts.CreateWallet() // Used ONLY for setting up the contract if needed
+		projectWallet, err = eth.CreateWallet() // Used ONLY for setting up the contract if needed
 		if err != nil {
 			log.Fatalf("Error creating master wallet: %v", err)
 		}

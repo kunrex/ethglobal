@@ -3,3 +3,5 @@ git-server
 
 .DS_Store
 .idea
+
+config.json

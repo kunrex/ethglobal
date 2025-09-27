@@ -1,30 +1,30 @@
 package config
 
 import (
+	"encoding/json"
 	"git-server/pkg/types"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/joho/godotenv"
 	"log"
 	"math/big"
 	"os"
 )
 
-func LoadConfig() *types.Config {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("error loading .env file")
+func LoadConfig() types.Configuration {
+	data, err := os.ReadFile("config.json")
+	if err != nil {
+		log.Fatalf("error encountered reading config: %v", err)
 	}
 
-	rpc := os.Getenv("RPC")
-	contractAddress := os.Getenv("CONTRACT_ADDRESS")
-
-	chainID, ok := new(big.Int).SetString(os.Getenv("CHAIN_ID"), 10)
-	if !ok {
-		log.Fatal("failed to parse chain id CHAIN_ID")
+	var configuration types.ConfigurationJson
+	if err = json.Unmarshal(data, &configuration); err != nil {
+		log.Fatalf("error encountered reading config: %v", err)
 	}
 
-	return &types.Config{
-		RPC:             rpc,
-		ChainID:         chainID,
-		ContractAddress: common.HexToAddress(contractAddress),
+	return types.Configuration{
+		KeyStoreDirectory: configuration.KeyStoreDirectory,
+		ContractConfig: types.ContractConfiguration{
+			RPC:     configuration.ContractConfig.RPC,
+			ChainID: big.NewInt(configuration.ContractConfig.ChainID),
+		},
+		Timeout: configuration.Timeout,
 	}
 }

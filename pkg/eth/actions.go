@@ -1,4 +1,4 @@
-package contracts
+package eth
 
 import (
 	"context"
