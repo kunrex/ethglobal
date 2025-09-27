@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -78,7 +79,17 @@ func (lh *LighthouseClient) UploadFile(plainBuf []byte, key []byte) (*UploadResp
 }
 
 func (lh *LighthouseClient) DownloadFile(cid string, key []byte) ([]byte, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://api.lighthouse.storage/api/v0/cat?arg=%s", cid), nil)
+	var result map[string]string
+
+	err := json.Unmarshal([]byte(cid), &result)
+	if err != nil {
+		fmt.Println("Error unmarshalling JSON:", err)
+		return nil, err
+	}
+
+	fmt.Println(result)
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://gateway.lighthouse.storage/ipfs/%s", result["Hash"]), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
 	}

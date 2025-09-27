@@ -72,5 +72,7 @@ func InitContractActions(configuration *types.Configuration) (*types.ContractAct
 		Account:     account,
 		Keystore:    ks,
 		RootContext: ctx,
+		GetTimeout:  configuration.GetSeconds,
+		SetTimeout:  configuration.SetMinutes,
 	}, &ctx, nil
 }
