@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
 	"git-server/pkg/controllers"
 	"git-server/pkg/server"
+
+	"github.com/gorilla/mux"
 )
 
 // SetupRoutes configures all routes for the application
@@ -17,7 +18,7 @@ func SetupRoutes(gitServer *server.InMemoryGitServer) *mux.Router {
 
 	// Create controllers
 	repoController := controllers.NewRepoController(gitServer)
-	
+
 	// Git protocol endpoints
 	router.HandleFunc("/{repo}/info/refs", gitServer.GitInfoRefsHandler).Methods("GET")
 	router.HandleFunc("/{repo}/git-upload-pack", gitServer.GitUploadPackHandler).Methods("POST")
@@ -36,7 +37,7 @@ func SetupRoutes(gitServer *server.InMemoryGitServer) *mux.Router {
 	} else {
 		log.Println("Lighthouse API key found. Setting up Filecoin storage endpoints...")
 		lighthouseController := controllers.NewLighthouseController(lighthouseAPIKey)
-		
+
 		// Lighthouse routes
 		router.HandleFunc("/lighthouse/upload", lighthouseController.UploadHandler).Methods("POST")
 		router.HandleFunc("/lighthouse/download", lighthouseController.DownloadHandler).Methods("GET")

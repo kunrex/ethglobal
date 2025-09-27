@@ -5,10 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"git-server/pkg/api"
+	"git-server/pkg/contracts"
+	"git-server/pkg/main"
+	"git-server/pkg/utils"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 // LighthouseController handles Lighthouse (Filecoin) API operations
@@ -24,9 +29,9 @@ func NewLighthouseController(apiKey string) *LighthouseController {
 }
 
 func getKeyFromEnv() ([]byte, error) {
-	keyStr := os.Getenv("MY_SECRET_KEY")
+	keyStr := os.Getenv("CCG_SECRET_KEY")
 	if keyStr == "" {
-		return nil, fmt.Errorf("MY_SECRET_KEY not set")
+		return nil, fmt.Errorf("CCG_SECRET_KEY not set")
 	}
 
 	key, err := base64.StdEncoding.DecodeString(keyStr)
@@ -34,8 +39,7 @@ func getKeyFromEnv() ([]byte, error) {
 		return nil, fmt.Errorf("invalid base64 key: %w", err)
 	}
 
-	// Must be 16, 24, or 32 bytes for AES
-	if l := len(key); l != 16 && l != 24 && l != 32 {
+	if l := len(key); l != 32 {
 		return nil, fmt.Errorf("invalid AES key size: %d bytes", l)
 	}
 
@@ -44,15 +48,28 @@ func getKeyFromEnv() ([]byte, error) {
 
 // UploadHandler handles file uploads to Lighthouse (Filecoin)
 func (lc *LighthouseController) UploadHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	repoName := vars["repo"]
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
+	var err error
+	projectWallet := main.ProjectWallets[repoName]
+	if projectWallet == nil {
+		projectWallet, err = contracts.CreateWallet() // Used ONLY for setting up the contract if needed
+		if err != nil {
+			log.Fatalf("Error creating master wallet: %v", err)
+		}
+		main.ProjectWallets[repoName] = projectWallet
+		if err := utils.SaveProjectsToFile(main.ProjectWallets); err != nil {
+			log.Fatalf("Error saving master wallet: %v", err)
+		}
+	}
 	// Parse multipart form
-	err := r.ParseMultipartForm(32 << 20) // 32 MB max
+	err = r.ParseMultipartForm(32 << 20) // 32 MB max
 	if err != nil {
-		http.Error(w, "Failed to parse multipart form", http.StatusBadRequest)
+		http.Error(w, "Failed to parse multipart form/Size Exceeded", http.StatusBadRequest)
 		return
 	}
 

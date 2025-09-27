@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"git-server/pkg/crypto"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
@@ -51,25 +50,8 @@ type FileInfo struct {
 }
 
 // UploadFile uploads a file to Lighthouse (Filecoin)
-func (lh *LighthouseAPI) UploadFile(file io.Reader, filename string, key []byte) (*UploadResponse, error) {
-	// Create multipart form data
-	var plainBuf bytes.Buffer
-	writer := multipart.NewWriter(&plainBuf)
-
-	// Add file field
-	fileWriter, err := writer.CreateFormFile("file", filename)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create form file: %v", err)
-	}
-
-	_, err = io.Copy(fileWriter, file)
-	if err != nil {
-		return nil, fmt.Errorf("failed to copy file data: %v", err)
-	}
-
-	writer.Close()
-
-	cipherText, err := crypto.Encrypt(key, plainBuf.Bytes())
+func (lh *LighthouseAPI) UploadFile(plainBuf []byte, key []byte) (*UploadResponse, error) {
+	cipherText, err := crypto.Encrypt(key, plainBuf)
 	var cipherBuf bytes.Buffer
 	cipherBuf.Write(cipherText)
 	if err != nil {
@@ -82,7 +64,7 @@ func (lh *LighthouseAPI) UploadFile(file io.Reader, filename string, key []byte)
 		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
 
-	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Content-Type", "application/octet-stream")
 	req.Header.Set("Authorization", "Bearer "+lh.apiKey)
 
 	// Send request

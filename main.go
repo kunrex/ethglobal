@@ -1,42 +1,69 @@
 package main
 
 import (
+	"git-server/pkg/abi"
+	"git-server/pkg/contracts"
+	"git-server/pkg/routes"
+	"git-server/pkg/server"
+	"git-server/pkg/types"
+	"git-server/pkg/utils"
 	"log"
+	"math/big"
 	"net/http"
 	"os"
 
-	"git-server/pkg/routes"
-	"git-server/pkg/server"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func main() {
+var (
+	ethRPC         = "https://testnet.infura.io/v3/YOUR_KEY" // Ethereum endpoint
+	chainID        = big.NewInt(11155111)                    // Example chainId (Sepolia...)
+	contractGlobal *abi.Abi                                  // Global contract instance
+)
 
-	// Create the Git server
+var ProjectWallets = map[string]*types.AnonymousWallet{}
+
+func main() {
+	// Load project wallets from file
+	var err error
+	ProjectWallets, err = utils.LoadProjectsFromFile()
+	if err != nil {
+		log.Fatalf("Failed to load project wallets: %v", err)
+	}
+
+	// Connect to Ethereum node
+	client, err := ethclient.Dial(ethRPC)
+	if err != nil {
+		log.Fatalf("Failed to connect to Ethereum: %v", err)
+	}
+	// Bind the global contract instance ONCE for the whole server
+	// (You might want to use a “master” wallet here for contract writes if needed)
+	masterWallet := ProjectWallets["master"]
+	if masterWallet == nil {
+		masterWallet, err = contracts.CreateWallet() // Used ONLY for setting up the contract if needed
+		if err != nil {
+			log.Fatalf("Error creating master wallet: %v", err)
+		}
+		ProjectWallets["master"] = masterWallet
+		if err := utils.SaveProjectsToFile(ProjectWallets); err != nil {
+			log.Fatalf("Error saving master wallet: %v", err)
+		}
+	}
+
+	contract, err := contracts.CreateContract(masterWallet, client)
+	if err != nil {
+		log.Fatalf("Error binding contract: %v", err)
+	}
+	contractGlobal = contract
 	gitServer := server.NewInMemoryGitServer()
 
-	// Create some sample repositories
-	err := gitServer.CreateRepository("test-repo")
-	if err != nil {
-		log.Printf("Warning: Failed to create test repository: %v", err)
-	}
-
-	err = gitServer.CreateRepository("demo")
-	if err != nil {
-		log.Printf("Warning: Failed to create demo repository: %v", err)
-	}
-
-	// Set up routes
 	router := routes.SetupRoutes(gitServer)
-
-	// Get port from environment or use default
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "3370"
 	}
-
 	log.Printf("Starting Git server on port %s", port)
 	log.Printf("Visit http://localhost:%s to see the web interface", port)
-
 	if err := http.ListenAndServe(":"+port, router); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
