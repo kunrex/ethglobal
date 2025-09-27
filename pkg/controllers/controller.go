@@ -6,12 +6,30 @@ import (
 	"ethglobal/pkg/types"
 	"ethglobal/pkg/utils"
 	"os"
+
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/wealdtech/go-ens/v3"
 )
 
 type Controller struct {
 	EncryptionKeyBytes []byte
 	ActionContracts    *types.ContractActions
 	Lighthouse         *types.LighthouseClient
+}
+
+func getRepositoryAddressOrHash(repository string) [32]byte {
+	client, err := ethclient.Dial("https://cloudflare-eth.com")
+	if err != nil {
+		return utils.SHA256(repository)
+	}
+	var address32Bytes [32]byte
+	address, err := ens.Resolve(client, repository)
+	if err != nil {
+		return utils.SHA256(repository)
+	}
+	copy(address32Bytes[12:], address.Bytes())
+	return address32Bytes
+
 }
 
 func (c Controller) calculateMetaData(hash [32]byte, commitHash string) ([]byte, error) {
@@ -48,7 +66,7 @@ func (c Controller) calculateMetaData(hash [32]byte, commitHash string) ([]byte,
 }
 
 func (c Controller) PushColdStorage(repository string, dotGitFile string, commitHash string) (string, error) {
-	hash := utils.SHA256(repository)
+	hash := getRepositoryAddressOrHash(repository)
 	marshalledMetaData, err := c.calculateMetaData(hash, commitHash)
 	if err != nil {
 		return "", err
@@ -78,7 +96,7 @@ func (c Controller) PushColdStorage(repository string, dotGitFile string, commit
 }
 
 func (c Controller) RetrieveLatestMetaData(repository string) ([]byte, error) {
-	hash := utils.SHA256(repository)
+	hash := getRepositoryAddressOrHash(repository)
 	metaDataCid, exists, err := c.ActionContracts.GetProjectMetadata(hash)
 	if err != nil {
 		return nil, err
@@ -97,7 +115,7 @@ func (c Controller) RetrieveLatestMetaData(repository string) ([]byte, error) {
 }
 
 func (c Controller) RetrieveColdStorage(repository string, output string) ([]byte, error) {
-	hash := utils.SHA256(repository)
+	hash := getRepositoryAddressOrHash(repository)
 	cid, metaDataCid, exists, err := c.ActionContracts.GetProject(hash)
 	if err != nil {
 		return nil, err
