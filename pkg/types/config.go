@@ -6,17 +6,13 @@ import (
 )
 
 type Configuration struct {
-	GetSeconds time.Duration
-	SetMinutes time.Duration
-
+	GetSeconds        time.Duration
+	SetMinutes        time.Duration
 	LighthouseKey     string
 	ConnectionTimeout time.Duration
-
-	JsonRPC        string
-	Chain          *big.Int
-	ContactAddress string
-
+	JsonRPC           string
+	Chain             *big.Int
+	ContactAddress    string
 	KeystoreDirectory string
-
-	EncryptionKey string
+	EncryptionKey     string
 }

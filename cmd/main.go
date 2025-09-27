@@ -5,22 +5,11 @@ import (
 	"ethglobal/pkg/config"
 	"ethglobal/pkg/contract"
 	"ethglobal/pkg/controllers"
-	"ethglobal/pkg/types"
+	"ethglobal/pkg/lighthouse"
 	"fmt"
 	"github.com/spf13/cobra"
 	"log"
-	"net/http"
 )
-
-func initLighthouseClient(configuration types.Configuration) *types.LighthouseClient {
-	return &types.LighthouseClient{
-		ApiKey:      configuration.LighthouseKey,
-		ApiKeyBytes: []byte(configuration.LighthouseKey),
-		Client: &http.Client{
-			Timeout: configuration.ConnectionTimeout,
-		},
-	}
-}
 
 func main() {
 	configuration := config.LoadConfig()
@@ -30,9 +19,11 @@ func main() {
 		return
 	}
 
+	lighthouseClient := lighthouse.InitLightHouseClient(configuration)
+
 	controller := controllers.Controller{
 		ActionContracts: actions,
-		Lighthouse:      initLighthouseClient(configuration),
+		Lighthouse:      lighthouseClient,
 	}
 
 	var push = &cobra.Command{
