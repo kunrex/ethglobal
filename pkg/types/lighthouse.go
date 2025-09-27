@@ -5,6 +5,7 @@ import (
 	"ethglobal/pkg/utils"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 )
@@ -16,20 +17,37 @@ type LighthouseClient struct {
 }
 
 func (lh *LighthouseClient) UploadFile(plainBuf []byte, key []byte) (*UploadResponse, error) {
-	cipherText, err := utils.Encrypt(key, plainBuf)
+	//cipherText, err := utils.Encrypt(key, plainBuf)
+	cipherText := plainBuf
 	var cipherBuf bytes.Buffer
 	cipherBuf.Write(cipherText)
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to encrypt file: %v", err)
+	//}
+
+	// Prepare multipart form
+	var buf bytes.Buffer
+	writer := multipart.NewWriter(&buf)
+
+	// "file" is the field name from curl -F 'file=@...'
+	part, err := writer.CreateFormFile("file", "unnamed.jpeg")
 	if err != nil {
-		return nil, fmt.Errorf("failed to encrypt file: %v", err)
+		panic(err)
+	}
+	_, err = part.Write(cipherText)
+	if err != nil {
+		panic(err)
 	}
 
+	writer.Close()
+
 	// Create HTTP request to Lighthouse API
-	req, err := http.NewRequest("POST", "https://api.lighthouse.storage/api/v0/add", &cipherBuf)
+	req, err := http.NewRequest("POST", "https://upload.lighthouse.storage/api/v0/add", &buf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
 
-	req.Header.Set("Content-Type", "application/octet-stream")
+	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("Authorization", "Bearer "+lh.ApiKey)
 
 	// Send request

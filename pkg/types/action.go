@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"log"
 	"math/big"
 	"time"
 )
@@ -40,13 +41,15 @@ func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) (bool, []
 }
 
 func (c *ContractActions) SetProjectCID(repositoryIdentifier [32]byte, cid []byte) (string, error) {
-	_, err := bind.NewKeyStoreTransactorWithChainID(c.Keystore, c.Account, c.Chain)
+	log.Print("gell")
+
+	auth, err := bind.NewKeyStoreTransactorWithChainID(c.Keystore, c.Account, c.Chain)
 	if err != nil {
 		return "", nil
 	}
 
 	tx, err := c.Contract.SetProject(
-		&bind.TransactOpts{},
+		auth,
 		repositoryIdentifier, cid)
 	if err != nil {
 		return "", err

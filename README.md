@@ -29,13 +29,13 @@ A lightweight Git server written in Go that stores repositories in memory using 
 ### Starting the Server
 
 ```bash
-go run main.go
+go run cmd.go
 ```
 
 The server will start on port 8080 by default. You can change the port by setting the `PORT` environment variable:
 
 ```bash
-PORT=3000 go run main.go
+PORT=3000 go run cmd.go
 ```
 
 ### Web Interface
@@ -115,7 +115,7 @@ This is a simplified implementation for demonstration purposes. A production Git
 To build the server:
 
 ```bash
-go build -o ethglobal main.go
+go build -o ethglobal cmd.go
 ```
 
 To run the demo:

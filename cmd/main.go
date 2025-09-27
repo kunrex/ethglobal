@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"ethglobal/pkg/config"
+	"ethglobal/pkg/contract"
 	"ethglobal/pkg/controllers"
 	"ethglobal/pkg/types"
 	"fmt"
@@ -24,7 +25,7 @@ func initLighthouseClient(configuration types.Configuration) *types.LighthouseCl
 func main() {
 	configuration := config.LoadConfig()
 
-	actions, rootCtx, err := InitContractActions(&configuration)
+	actions, rootCtx, err := contract.InitContractActions(&configuration)
 	if err != nil {
 		return
 	}
