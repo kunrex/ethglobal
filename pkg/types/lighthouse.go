@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"ethglobal/pkg/utils"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -104,10 +103,11 @@ func (lh *LighthouseClient) DownloadFile(cid string, key []byte) ([]byte, error)
 		return nil, fmt.Errorf("failed to read file content: %v", err)
 	}
 
-	plainBuf, err := utils.Decrypt(key, cipherBuf)
-	if err != nil {
+	//plainBuf, err := utils.Decrypt(key, cipherBuf)
+	plainBuf := cipherBuf
+	/*if err != nil {
 		return nil, fmt.Errorf("failed to decrypt file: %v", err)
-	}
+	}*/
 
 	return plainBuf, nil
 }

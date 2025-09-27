@@ -67,9 +67,10 @@ func InitContractActions(configuration *types.Configuration) (*types.ContractAct
 	}
 
 	return &types.ContractActions{
-		Chain:    configuration.Chain,
-		Contract: contract,
-		Account:  account,
-		Keystore: ks,
+		Chain:       configuration.Chain,
+		Contract:    contract,
+		Account:     account,
+		Keystore:    ks,
+		RootContext: ctx,
 	}, &ctx, nil
 }

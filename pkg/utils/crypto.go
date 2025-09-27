@@ -74,7 +74,7 @@ func Decrypt(key, ciphertext []byte) ([]byte, error) {
 func SHA256(data string) [32]byte {
 	return sha256.Sum256([]byte(data))
 }
-func t410fToHex(address string) (string, error) {
+func FileAddressToHex(address string) (string, error) {
 	if !(strings.HasPrefix(address, "t410f") || strings.HasPrefix(address, "f410f")) {
 		return "", errors.New("address must start with t410f or f410f")
 	}
