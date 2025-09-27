@@ -64,7 +64,12 @@ func (c Controller) PushColdStorage(repository string, dotGitFile string, commit
 		return "", err
 	}
 
-	transactionId, err := c.ActionContracts.SetProject(hash, []byte(cid), marshalledMetaData)
+	metaDataCid, err := c.Lighthouse.UploadFile(marshalledMetaData, c.EncryptionKeyBytes, commitHash+"_meta")
+	if err != nil {
+		return "", err
+	}
+
+	transactionId, err := c.ActionContracts.SetProject(hash, []byte(cid), []byte(metaDataCid))
 	if err != nil {
 		return "", err
 	}
@@ -74,12 +79,17 @@ func (c Controller) PushColdStorage(repository string, dotGitFile string, commit
 
 func (c Controller) RetrieveLatestMetaData(repository string) ([]byte, error) {
 	hash := utils.SHA256(repository)
-	metaData, exists, err := c.ActionContracts.GetProjectMetadata(hash)
+	metaDataCid, exists, err := c.ActionContracts.GetProjectMetadata(hash)
 	if err != nil {
 		return nil, err
 	}
 
 	if exists {
+		metaData, err := c.Lighthouse.DownloadFile(string(metaDataCid), c.EncryptionKeyBytes)
+		if err != nil {
+			return nil, err
+		}
+
 		return metaData, nil
 	} else {
 		return nil, nil
@@ -88,7 +98,7 @@ func (c Controller) RetrieveLatestMetaData(repository string) ([]byte, error) {
 
 func (c Controller) RetrieveColdStorage(repository string, output string) ([]byte, error) {
 	hash := utils.SHA256(repository)
-	cid, metaData, exists, err := c.ActionContracts.GetProject(hash)
+	cid, metaDataCid, exists, err := c.ActionContracts.GetProject(hash)
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +108,11 @@ func (c Controller) RetrieveColdStorage(repository string, output string) ([]byt
 	}
 
 	data, err := c.Lighthouse.DownloadFile(string(cid), c.EncryptionKeyBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	metaData, err := c.Lighthouse.DownloadFile(string(metaDataCid), c.EncryptionKeyBytes)
 	if err != nil {
 		return nil, err
 	}
