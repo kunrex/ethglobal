@@ -2,7 +2,6 @@ package types
 
 import (
 	"context"
-	"errors"
 	"git-server/pkg/abi"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -23,26 +22,7 @@ type ContractActions struct {
 	RootContext context.Context
 }
 
-func (c *ContractActions) CheckProjectExists(repositoryIdentifier *[32]byte) (bool, error) {
-	ctx, cancel := context.WithTimeout(c.RootContext, c.GetTimeout)
-
-	defer cancel()
-
-	_, exists, err := c.Contract.GetProject(
-		&bind.CallOpts{
-			Context: ctx,
-		},
-		*repositoryIdentifier,
-	)
-
-	if err != nil {
-		return false, err
-	}
-
-	return exists, nil
-}
-
-func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) ([]byte, error) {
+func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) (bool, []byte, error) {
 	ctx, cancel := context.WithTimeout(c.RootContext, c.GetTimeout)
 	defer cancel()
 
@@ -54,14 +34,9 @@ func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) ([]byte, 
 	)
 
 	if err != nil {
-		return nil, err
+		return false, nil, err
 	}
-
-	if !exists {
-		return nil, errors.New("project not found")
-	}
-
-	return cid, nil
+	return exists, cid, nil
 }
 
 func (c *ContractActions) SetProjectCID(repositoryIdentifier [32]byte, cid []byte) (string, error) {

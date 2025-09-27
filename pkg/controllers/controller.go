@@ -36,6 +36,21 @@ func (c Controller) PushColdStorage(repository string, dotGitFile string) (strin
 	return transactionId, nil
 }
 
-func (c Controller) RetrieveColdStorage(repository string, ) (string, error) {
+func (c Controller) RetrieveColdStorage(repository string, output string) error {
+	hash := utils.SHA256(repository)
+	exists, cid, err := c.ActionContracts.GetProjectCID(hash)
+	if err != nil {
+		return nil
+	}
 
+	if !exists {
+		return errors.New("failed to retrieve project code")
+	}
+
+	data, err := c.Lighthouse.DownloadFile(string(cid), c.Lighthouse.ApiKeyBytes)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(output, data, 0644)
 }

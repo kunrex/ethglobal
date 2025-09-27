@@ -37,7 +37,6 @@ func initContract(contractAddress common.Address, client *ethclient.Client) (*ab
 	return contract, err
 }
 
-// InitContractActions creates a usable context action that can be used to perform any action on the contract
 func InitContractActions(configuration *types.Configuration) (*types.ContractActions, *context.Context, error) {
 	ks := keystore.NewKeyStore(configuration.KeystoreDirectory, keystore.StandardScryptN, keystore.StandardScryptP)
 	accountPtr, err := initKeystoreWallet(ks)
