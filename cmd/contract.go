@@ -32,14 +32,14 @@ func initKeystoreWallet(ks *keystore.KeyStore) (*accounts.Account, error) {
 	}
 }
 
-func initContract(address common.Address, client *ethclient.Client) (*abi.Abi, error) {
-	contract, err := abi.NewAbi(address, client)
+func initContract(contractAddress common.Address, client *ethclient.Client) (*abi.Abi, error) {
+	contract, err := abi.NewAbi(contractAddress, client)
 	return contract, err
 }
 
 // InitContractActions creates a usable context action that can be used to perform any action on the contract
 func InitContractActions(configuration *types.Configuration) (*types.ContractActions, *context.Context, error) {
-	ks := keystore.NewKeyStore(configuration.KeyStoreDirectory, keystore.StandardScryptN, keystore.StandardScryptP)
+	ks := keystore.NewKeyStore(configuration.KeystoreDirectory, keystore.StandardScryptN, keystore.StandardScryptP)
 	accountPtr, err := initKeystoreWallet(ks)
 	if err != nil {
 		return nil, nil, err
@@ -48,18 +48,27 @@ func InitContractActions(configuration *types.Configuration) (*types.ContractAct
 	account := *accountPtr
 
 	ctx := context.Background()
-	client, err := ethclient.DialContext(ctx, configuration.ContractConfig.RPC)
+	client, err := ethclient.DialContext(ctx, configuration.JsonRPC)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	contract, err := initContract(account.Address, client)
+	contractAddress := common.HexToAddress(configuration.ContactAddress)
+	bytecode, err := client.CodeAt(context.Background(), contractAddress, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(bytecode) == 0 {
+		return nil, nil, errors.New("no code at contract address")
+	}
+
+	contract, err := initContract(contractAddress, client)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return &types.ContractActions{
-		Chain:    configuration.ContractConfig.ChainID,
+		Chain:    configuration.Chain,
 		Contract: contract,
 		Account:  account,
 		Keystore: ks,

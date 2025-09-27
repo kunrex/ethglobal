@@ -1,9 +1,10 @@
 async function main() {
-    const Contract = await ethers.getContractFactory("MyContract");
+    const Contract = await ethers.getContractFactory("ProjectRegistry");
     const contract = await Contract.deploy();
-    await contract.deployed();
 
-    console.log("contract address:", contract.address);
+    await contract.waitForDeployment();
+
+    console.log("contract address:", await contract.getAddress());
 }
 
 main().catch((error) => {

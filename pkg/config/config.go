@@ -42,11 +42,15 @@ func LoadConfig() types.Configuration {
 	configuration.SetMinutes = time.Minute * time.Duration(minutes)
 
 	readString("LIGHTHOUSE_KEY", &configuration.LighthouseKey)
+	readInt("CONNECTION_TIMEOUT_SECONDS", &seconds)
+	configuration.ConnectionTimeout = time.Second * time.Duration(seconds)
+
 	readString("KEYSTORE_DIRECTORY", &configuration.KeystoreDirectory)
 
 	var chain int
 	readInt("CHAIN", &chain)
 	configuration.Chain = big.NewInt(int64(chain))
+	readString("CONTRACT_ADDRESS", &configuration.ContactAddress)
 
 	readString("JSON_RPC", &configuration.JsonRPC)
 

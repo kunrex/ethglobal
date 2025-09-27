@@ -25,6 +25,7 @@ type ContractActions struct {
 
 func (c *ContractActions) CheckProjectExists(repositoryIdentifier *[32]byte) (bool, error) {
 	ctx, cancel := context.WithTimeout(c.RootContext, c.GetTimeout)
+
 	defer cancel()
 
 	_, exists, err := c.Contract.GetProject(
@@ -41,7 +42,7 @@ func (c *ContractActions) CheckProjectExists(repositoryIdentifier *[32]byte) (bo
 	return exists, nil
 }
 
-func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) (*[32]byte, error) {
+func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(c.RootContext, c.GetTimeout)
 	defer cancel()
 
@@ -60,10 +61,10 @@ func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) (*[32]byt
 		return nil, errors.New("project not found")
 	}
 
-	return &cid, nil
+	return cid, nil
 }
 
-func (c *ContractActions) SetProjectCID(repositoryIdentifier [32]byte, cid [32]byte) (string, error) {
+func (c *ContractActions) SetProjectCID(repositoryIdentifier [32]byte, cid []byte) (string, error) {
 	_, err := bind.NewKeyStoreTransactorWithChainID(c.Keystore, c.Account, c.Chain)
 	if err != nil {
 		return "", nil

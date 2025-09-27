@@ -9,10 +9,12 @@ type Configuration struct {
 	GetSeconds time.Duration
 	SetMinutes time.Duration
 
-	LighthouseKey string
+	LighthouseKey     string
+	ConnectionTimeout time.Duration
 
-	JsonRPC string
-	Chain   *big.Int
+	JsonRPC        string
+	Chain          *big.Int
+	ContactAddress string
 
 	KeystoreDirectory string
 }
