@@ -7,16 +7,14 @@ import "@nomicfoundation/hardhat-toolbox"
 dotenv.config()
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY
-const CALIBRATION_URL = process.env.CALIBRATION_URL
-const CHAIN_ID = parseInt(process.env.CHAIN_ID)
 
 const config = {
     solidity: "0.8.17",
     defaultNetwork: "calibration",
     networks: {
         calibration: {
-            chainId: CHAIN_ID,
-            url: CALIBRATION_URL,
+            chainId: 314159,
+            url: "https://api.calibration.node.glif.io/rpc/v1",
             accounts: [PRIVATE_KEY]
         },
     },
