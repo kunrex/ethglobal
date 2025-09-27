@@ -98,7 +98,7 @@ func (lh *LighthouseClient) DownloadFile(bytes string, encryptionKey []byte) ([]
 		return nil, fmt.Errorf("failed to read response: %v", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("lighthouse API error: %s", string(body))
+		return nil, fmt.Errorf("lighthouse API error: %s", string(cipherBuf))
 	}
 
 	plainBuf, err := utils.Decrypt(encryptionKey, cipherBuf)
