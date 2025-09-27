@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+
 	// Create the Git server
 	gitServer := server.NewInMemoryGitServer()
 
@@ -35,7 +36,7 @@ func main() {
 
 	log.Printf("Starting Git server on port %s", port)
 	log.Printf("Visit http://localhost:%s to see the web interface", port)
-	
+
 	if err := http.ListenAndServe(":"+port, router); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
