@@ -1,4 +1,4 @@
-package crypto
+package utils
 
 import (
 	"bytes"
@@ -67,8 +67,6 @@ func Decrypt(key, ciphertext []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
-func SHA256(data string) (hash []byte) {
-	h := sha256.New()
-	h.Write([]byte(data))
-	return h.Sum(nil)
+func SHA256(data string) [32]byte {
+	return sha256.Sum256([]byte(data))
 }

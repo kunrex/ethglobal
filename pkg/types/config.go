@@ -14,6 +14,7 @@ type ContractConfigurationJson struct {
 
 type ConfigurationJson struct {
 	KeyStoreDirectory string
+	LighthouseAPIKey  string
 	ContractConfig    ContractConfigurationJson
 	Timeout           TimeoutConfigs
 }
@@ -25,6 +26,7 @@ type ContractConfiguration struct {
 
 type Configuration struct {
 	KeyStoreDirectory string
+	LighthouseAPIKey  string
 	ContractConfig    ContractConfiguration
 	Timeout           TimeoutConfigs
 }

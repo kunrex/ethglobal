@@ -1,18 +1,15 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
 contract ProjectRegistry {
-    mapping (bytes32 => bytes32) private projects;
+    mapping (bytes32 => bytes) private projects;
 
-    function setProject(bytes32 index, bytes32 cid) public {
+    function setProject(bytes32 index, bytes memory cid) public {
         projects[index] = cid;
     }
 
-    function getProject(bytes32 index) public view returns (bytes32, bool) {
-        bytes32 cid = projects[index];
-        if (cid == bytes32(0)) {
-            return (cid, false);
-        }
-
-        return (cid, true);
+    function getProject(bytes32 index) public view returns (bytes memory, bool) {
+        bytes memory cid = projects[index];
+        return (cid, cid.length > 0);
     }
 }

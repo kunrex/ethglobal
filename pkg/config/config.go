@@ -25,6 +25,7 @@ func LoadConfig() types.Configuration {
 			RPC:     configuration.ContractConfig.RPC,
 			ChainID: big.NewInt(configuration.ContractConfig.ChainID),
 		},
-		Timeout: configuration.Timeout,
+		Timeout:          configuration.Timeout,
+		LighthouseAPIKey: configuration.LighthouseAPIKey,
 	}
 }
