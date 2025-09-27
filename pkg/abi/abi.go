@@ -31,7 +31,7 @@ var (
 
 // AbiMetaData contains all meta data concerning the Abi contract.
 var AbiMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"}],\"name\":\"getProject\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"cid\",\"type\":\"bytes32\"}],\"name\":\"setProject\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"indedx\",\"type\":\"bytes32\"}],\"name\":\"getProject\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"index\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"cid\",\"type\":\"bytes32\"}],\"name\":\"setProject\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // AbiABI is the input ABI used to generate the binding from.
@@ -180,12 +180,12 @@ func (_Abi *AbiTransactorRaw) Transact(opts *bind.TransactOpts, method string, p
 	return _Abi.Contract.contract.Transact(opts, method, params...)
 }
 
-// GetProject is a free data retrieval call binding the contract method 0xf9870705.
+// GetProject is a free data retrieval call binding the contract method 0x4b5f748a.
 //
-// Solidity: function getProject(address wallet) view returns(bytes32, bool)
-func (_Abi *AbiCaller) GetProject(opts *bind.CallOpts, wallet common.Address) ([32]byte, bool, error) {
+// Solidity: function getProject(bytes32 indedx) view returns(bytes32, bool)
+func (_Abi *AbiCaller) GetProject(opts *bind.CallOpts, indedx [32]byte) ([32]byte, bool, error) {
 	var out []interface{}
-	err := _Abi.contract.Call(opts, &out, "getProject", wallet)
+	err := _Abi.contract.Call(opts, &out, "getProject", indedx)
 
 	if err != nil {
 		return *new([32]byte), *new(bool), err
@@ -198,37 +198,37 @@ func (_Abi *AbiCaller) GetProject(opts *bind.CallOpts, wallet common.Address) ([
 
 }
 
-// GetProject is a free data retrieval call binding the contract method 0xf9870705.
+// GetProject is a free data retrieval call binding the contract method 0x4b5f748a.
 //
-// Solidity: function getProject(address wallet) view returns(bytes32, bool)
-func (_Abi *AbiSession) GetProject(wallet common.Address) ([32]byte, bool, error) {
-	return _Abi.Contract.GetProject(&_Abi.CallOpts, wallet)
+// Solidity: function getProject(bytes32 indedx) view returns(bytes32, bool)
+func (_Abi *AbiSession) GetProject(indedx [32]byte) ([32]byte, bool, error) {
+	return _Abi.Contract.GetProject(&_Abi.CallOpts, indedx)
 }
 
-// GetProject is a free data retrieval call binding the contract method 0xf9870705.
+// GetProject is a free data retrieval call binding the contract method 0x4b5f748a.
 //
-// Solidity: function getProject(address wallet) view returns(bytes32, bool)
-func (_Abi *AbiCallerSession) GetProject(wallet common.Address) ([32]byte, bool, error) {
-	return _Abi.Contract.GetProject(&_Abi.CallOpts, wallet)
+// Solidity: function getProject(bytes32 indedx) view returns(bytes32, bool)
+func (_Abi *AbiCallerSession) GetProject(indedx [32]byte) ([32]byte, bool, error) {
+	return _Abi.Contract.GetProject(&_Abi.CallOpts, indedx)
 }
 
-// SetProject is a paid mutator transaction binding the contract method 0x97ce1d95.
+// SetProject is a paid mutator transaction binding the contract method 0xfabb580b.
 //
-// Solidity: function setProject(bytes32 cid) returns()
-func (_Abi *AbiTransactor) SetProject(opts *bind.TransactOpts, cid [32]byte) (*types.Transaction, error) {
-	return _Abi.contract.Transact(opts, "setProject", cid)
+// Solidity: function setProject(bytes32 index, bytes32 cid) returns()
+func (_Abi *AbiTransactor) SetProject(opts *bind.TransactOpts, index [32]byte, cid [32]byte) (*types.Transaction, error) {
+	return _Abi.contract.Transact(opts, "setProject", index, cid)
 }
 
-// SetProject is a paid mutator transaction binding the contract method 0x97ce1d95.
+// SetProject is a paid mutator transaction binding the contract method 0xfabb580b.
 //
-// Solidity: function setProject(bytes32 cid) returns()
-func (_Abi *AbiSession) SetProject(cid [32]byte) (*types.Transaction, error) {
-	return _Abi.Contract.SetProject(&_Abi.TransactOpts, cid)
+// Solidity: function setProject(bytes32 index, bytes32 cid) returns()
+func (_Abi *AbiSession) SetProject(index [32]byte, cid [32]byte) (*types.Transaction, error) {
+	return _Abi.Contract.SetProject(&_Abi.TransactOpts, index, cid)
 }
 
-// SetProject is a paid mutator transaction binding the contract method 0x97ce1d95.
+// SetProject is a paid mutator transaction binding the contract method 0xfabb580b.
 //
-// Solidity: function setProject(bytes32 cid) returns()
-func (_Abi *AbiTransactorSession) SetProject(cid [32]byte) (*types.Transaction, error) {
-	return _Abi.Contract.SetProject(&_Abi.TransactOpts, cid)
+// Solidity: function setProject(bytes32 index, bytes32 cid) returns()
+func (_Abi *AbiTransactorSession) SetProject(index [32]byte, cid [32]byte) (*types.Transaction, error) {
+	return _Abi.Contract.SetProject(&_Abi.TransactOpts, index, cid)
 }

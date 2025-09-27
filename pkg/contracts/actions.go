@@ -9,10 +9,16 @@ import (
 	"math/big"
 )
 
-func ExistsWallet(wallet *types.AnonymousWallet, contract *abi.Abi) (bool, error) {
-	_, exists, err := contract.GetProject(
+type ContractActions struct {
+	chain    *big.Int
+	contract *abi.Abi
+	wallet   *types.AnonymousWallet
+}
+
+func (c *ContractActions) Exists(repositoryIdentifier *[32]byte) (bool, error) {
+	_, exists, err := c.contract.GetProject(
 		&bind.CallOpts{Context: context.Background()},
-		wallet.Address,
+		*repositoryIdentifier,
 	)
 
 	if err != nil {
@@ -22,10 +28,10 @@ func ExistsWallet(wallet *types.AnonymousWallet, contract *abi.Abi) (bool, error
 	return exists, nil
 }
 
-func GetProjectCID(wallet *types.AnonymousWallet, contract *abi.Abi) (*[32]byte, error) {
-	cid, exists, err := contract.GetProject(
+func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) (*[32]byte, error) {
+	cid, exists, err := c.contract.GetProject(
 		&bind.CallOpts{Context: context.Background()},
-		wallet.Address,
+		repositoryIdentifier,
 	)
 
 	if err != nil {
@@ -39,16 +45,13 @@ func GetProjectCID(wallet *types.AnonymousWallet, contract *abi.Abi) (*[32]byte,
 	return &cid, nil
 }
 
-func SetProjectCID(chain *big.Int, wallet *types.AnonymousWallet, contract *abi.Abi, cid []byte) (string, error) {
-	auth, err := bind.NewKeyedTransactorWithChainID(wallet.PrivateKey, chain)
+func (c *ContractActions) SetProjectCID(repositoryIdentifier [32]byte, cid *[32]byte) (string, error) {
+	auth, err := bind.NewKeyedTransactorWithChainID(c.wallet.PrivateKey, c.chain)
 	if err != nil {
 		return "", err
 	}
 
-	var cidBytes [32]byte
-	copy(cidBytes[:], cid)
-
-	tx, err := contract.SetProject(auth, cidBytes)
+	tx, err := c.contract.SetProject(auth, repositoryIdentifier, *cid)
 	if err != nil {
 		return "", err
 	}

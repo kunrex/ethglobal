@@ -1,17 +1,18 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
 contract ProjectRegistry {
-    mapping(address => bytes32) private projects;
+    mapping (bytes32 => bytes32) private projects;
 
-    function setProject(bytes32 cid) public {
-        projects[msg.sender] = cid;
+    function setProject(bytes32 index, bytes32 cid) public {
+        projects[index] = cid;
     }
 
-    function getProject(address wallet) public view returns (bytes32, bool) {
-        bytes32 cid = projects[wallet];
+    function getProject(bytes32 indedx) public view returns (bytes32, bool) {
+        bytes32 cid = projects[indedx];
         if (cid == bytes32(0)) {
             return (cid, false);
         }
+
         return (cid, true);
     }
 }
