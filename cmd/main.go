@@ -29,6 +29,15 @@ func main() {
 		EncryptionKeyBytes: []byte(configuration.EncryptionKey),
 	}
 
+	var address = &cobra.Command{
+		Use:   "address",
+		Short: "address -> Wallet Address",
+		Long:  "Fetches the address of the internal wallet",
+		Run: func(cmd *cobra.Command, args []string) {
+			log.Printf(controller.ActionContracts.Account.Address.Hex())
+		},
+	}
+
 	var push = &cobra.Command{
 		Use:   "push",
 		Short: "push [repository identifier] [path/to/.git.zip] [latest commit] -> Transaction Id",
@@ -107,6 +116,7 @@ func main() {
 
 	root.AddCommand(push)
 	root.AddCommand(pull)
+	root.AddCommand(address)
 	root.AddCommand(metadata)
 
 	_ = root.Execute()
