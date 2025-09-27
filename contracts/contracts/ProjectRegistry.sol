@@ -18,10 +18,6 @@ contract ProjectRegistry {
         return (p.cid, p.metaData, p.cid.length > 0);
     }
 
-    function setMetaData(bytes32 index, bytes memory metaData) public {
-        projects[index].metaData = metaData;
-    }
-
     function getMetaData(bytes32 index) public view returns (bytes memory, bool) {
         bytes memory metaData = projects[index].metaData;
         return (metaData, metaData.length > 0);

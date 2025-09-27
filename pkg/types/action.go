@@ -22,11 +22,11 @@ type ContractActions struct {
 	RootContext context.Context
 }
 
-func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) (bool, []byte, error) {
+func (c *ContractActions) GetProject(repositoryIdentifier [32]byte) ([]byte, []byte, bool, error) {
 	ctx, cancel := context.WithTimeout(c.RootContext, c.GetTimeout)
 	defer cancel()
 
-	cid, exists, err := c.Contract.GetProject(
+	cid, metaData, exists, err := c.Contract.GetProject(
 		&bind.CallOpts{
 			Context: ctx,
 		},
@@ -34,12 +34,29 @@ func (c *ContractActions) GetProjectCID(repositoryIdentifier [32]byte) (bool, []
 	)
 
 	if err != nil {
-		return false, nil, err
+		return nil, nil, false, err
 	}
-	return exists, cid, nil
+	return cid, metaData, exists, nil
 }
 
-func (c *ContractActions) SetProjectCID(repositoryIdentifier [32]byte, cid []byte) (string, error) {
+func (c *ContractActions) GetProjectMetadata(repositoryIdentifier [32]byte) ([]byte, bool, error) {
+	ctx, cancel := context.WithTimeout(c.RootContext, c.GetTimeout)
+	defer cancel()
+
+	metaData, exists, err := c.Contract.GetMetaData(
+		&bind.CallOpts{
+			Context: ctx,
+		},
+		repositoryIdentifier,
+	)
+
+	if err != nil {
+		return nil, false, err
+	}
+	return metaData, exists, nil
+}
+
+func (c *ContractActions) SetProject(repositoryIdentifier [32]byte, cid []byte, metaData []byte) (string, error) {
 	err := c.Keystore.Unlock(c.Account, "")
 	if err != nil {
 		panic(err)
@@ -52,7 +69,7 @@ func (c *ContractActions) SetProjectCID(repositoryIdentifier [32]byte, cid []byt
 
 	tx, err := c.Contract.SetProject(
 		auth,
-		repositoryIdentifier, cid)
+		repositoryIdentifier, cid, metaData)
 	if err != nil {
 		return "", err
 	}

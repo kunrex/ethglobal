@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"ethglobal/pkg/types"
 	"ethglobal/pkg/utils"
@@ -12,15 +13,44 @@ type Controller struct {
 	Lighthouse      *types.LighthouseClient
 }
 
-func (c Controller) PushColdStorage(repository string, dotGitFile string) (string, error) {
-	hash := utils.SHA256(repository)
-	exists, _, err := c.ActionContracts.GetProjectCID(hash)
+func (c Controller) calculateMetaData(hash [32]byte, commitHash string) ([]byte, error) {
+	metaData, exists, err := c.ActionContracts.GetProjectMetadata(hash)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	var versions []types.VersionMetaData
 	if exists {
+		err = json.Unmarshal(metaData, &versions)
+		if err != nil {
+			return nil, err
+		}
 
+		next := types.VersionMetaData{
+			Version:    uint32(len(versions) + 1),
+			CommitHash: commitHash,
+		}
+		versions = append(versions, next)
+	} else {
+		next := types.VersionMetaData{
+			Version:    1,
+			CommitHash: commitHash,
+		}
+		versions = append(versions, next)
+	}
+
+	marshalledMetaData, err := json.Marshal(versions)
+	if err != nil {
+		return nil, err
+	}
+	return marshalledMetaData, nil
+}
+
+func (c Controller) PushColdStorage(repository string, dotGitFile string, commitHash string) (string, error) {
+	hash := utils.SHA256(repository)
+	marshalledMetaData, err := c.calculateMetaData(hash, commitHash)
+	if err != nil {
+		return "", err
 	}
 
 	bytes, err := os.ReadFile(dotGitFile)
@@ -33,11 +63,7 @@ func (c Controller) PushColdStorage(repository string, dotGitFile string) (strin
 		return "", err
 	}
 
-	if !file.Success {
-		return "", errors.New("failed to upload to file coin")
-	}
-
-	transactionId, err := c.ActionContracts.SetProjectCID(hash, []byte(file.CID))
+	transactionId, err := c.ActionContracts.SetProject(hash, []byte(file.CID), marshalledMetaData)
 	if err != nil {
 		return "", err
 	}
@@ -45,25 +71,40 @@ func (c Controller) PushColdStorage(repository string, dotGitFile string) (strin
 	return transactionId, nil
 }
 
-func retrieveColdStorageBytes(repository string, dotGitFile string) (string, error) {
-	
+func (c Controller) RetrieveLatestMetaData(repository string) ([]byte, error) {
+	hash := utils.SHA256(repository)
+	metaData, exists, err := c.ActionContracts.GetProjectMetadata(hash)
+	if err != nil {
+		return nil, err
+	}
+
+	if exists {
+		return metaData, nil
+	} else {
+		return nil, nil
+	}
 }
 
-func (c Controller) RetrieveColdStorage(repository string, output string) error {
+func (c Controller) RetrieveColdStorage(repository string, output string) ([]byte, error) {
 	hash := utils.SHA256(repository)
-	exists, cid, err := c.ActionContracts.GetProjectCID(hash)
+	cid, metaData, exists, err := c.ActionContracts.GetProject(hash)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !exists {
-		return errors.New("failed to retrieve project code")
+		return nil, errors.New("failed to retrieve project code")
 	}
 
 	data, err := c.Lighthouse.DownloadFile(string(cid), c.Lighthouse.ApiKeyBytes)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return os.WriteFile(output, data, 0644)
+	err = os.WriteFile(output, data, 0644)
+	if err != nil {
+		return nil, err
+	}
+
+	return metaData, nil
 }

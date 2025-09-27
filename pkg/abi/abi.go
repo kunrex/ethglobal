@@ -31,7 +31,7 @@ var (
 
 // AbiMetaData contains all meta data concerning the Abi contract.
 var AbiMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"index\",\"type\":\"bytes32\"}],\"name\":\"getMetaData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"index\",\"type\":\"bytes32\"}],\"name\":\"getProject\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"index\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"metaData\",\"type\":\"bytes\"}],\"name\":\"setMetaData\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"index\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"cid\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"metaData\",\"type\":\"bytes\"}],\"name\":\"setProject\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"index\",\"type\":\"bytes32\"}],\"name\":\"getMetaData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"index\",\"type\":\"bytes32\"}],\"name\":\"getProject\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"index\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"cid\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"metaData\",\"type\":\"bytes\"}],\"name\":\"setProject\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // AbiABI is the input ABI used to generate the binding from.
@@ -243,27 +243,6 @@ func (_Abi *AbiSession) GetProject(index [32]byte) ([]byte, []byte, bool, error)
 // Solidity: function getProject(bytes32 index) view returns(bytes, bytes, bool)
 func (_Abi *AbiCallerSession) GetProject(index [32]byte) ([]byte, []byte, bool, error) {
 	return _Abi.Contract.GetProject(&_Abi.CallOpts, index)
-}
-
-// SetMetaData is a paid mutator transaction binding the contract method 0x28f776d0.
-//
-// Solidity: function setMetaData(bytes32 index, bytes metaData) returns()
-func (_Abi *AbiTransactor) SetMetaData(opts *bind.TransactOpts, index [32]byte, metaData []byte) (*types.Transaction, error) {
-	return _Abi.contract.Transact(opts, "setMetaData", index, metaData)
-}
-
-// SetMetaData is a paid mutator transaction binding the contract method 0x28f776d0.
-//
-// Solidity: function setMetaData(bytes32 index, bytes metaData) returns()
-func (_Abi *AbiSession) SetMetaData(index [32]byte, metaData []byte) (*types.Transaction, error) {
-	return _Abi.Contract.SetMetaData(&_Abi.TransactOpts, index, metaData)
-}
-
-// SetMetaData is a paid mutator transaction binding the contract method 0x28f776d0.
-//
-// Solidity: function setMetaData(bytes32 index, bytes metaData) returns()
-func (_Abi *AbiTransactorSession) SetMetaData(index [32]byte, metaData []byte) (*types.Transaction, error) {
-	return _Abi.Contract.SetMetaData(&_Abi.TransactOpts, index, metaData)
 }
 
 // SetProject is a paid mutator transaction binding the contract method 0x143d594f.
