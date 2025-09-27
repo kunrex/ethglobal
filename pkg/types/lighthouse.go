@@ -19,6 +19,9 @@ type LighthouseClient struct {
 
 func (lh *LighthouseClient) UploadFile(plainBuf []byte, encryptionKey []byte, commitHash string) (string, error) {
 	cipherText, err := utils.Encrypt(encryptionKey, plainBuf)
+	if err != nil {
+		return "", err
+	}
 
 	var cipherBuffer bytes.Buffer
 	writer := multipart.NewWriter(&cipherBuffer)
@@ -32,11 +35,9 @@ func (lh *LighthouseClient) UploadFile(plainBuf []byte, encryptionKey []byte, co
 		return "", err
 	}
 
-	defer func(writer *multipart.Writer) {
-		_ = writer.Close()
-	}(writer)
-
+	_ = writer.Close()
 	req, err := http.NewRequest("POST", "https://upload.lighthouse.storage/api/v0/add", &cipherBuffer)
+
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %v", err)
 	}
@@ -61,13 +62,15 @@ func (lh *LighthouseClient) UploadFile(plainBuf []byte, encryptionKey []byte, co
 	if err != nil {
 		return "", fmt.Errorf("failed to read response: %v", err)
 	}
-
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("lighthouse API error: %s", string(body))
+	}
 	return strings.TrimSpace(string(body)), nil
 }
 
-func (lh *LighthouseClient) DownloadFile(cid string, encryptionKey []byte) ([]byte, error) {
+func (lh *LighthouseClient) DownloadFile(bytes string, encryptionKey []byte) ([]byte, error) {
 	var result map[string]string
-	err := json.Unmarshal([]byte(cid), &result)
+	err := json.Unmarshal([]byte(bytes), &result)
 	if err != nil {
 		return nil, err
 	}
@@ -76,8 +79,6 @@ func (lh *LighthouseClient) DownloadFile(cid string, encryptionKey []byte) ([]by
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
-
-	req.Header.Set("Authorization", "Bearer "+lh.ApiKey)
 
 	resp, err := lh.Client.Do(req)
 	if err != nil {
@@ -94,7 +95,10 @@ func (lh *LighthouseClient) DownloadFile(cid string, encryptionKey []byte) ([]by
 
 	cipherBuf, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read file content: %v", err)
+		return nil, fmt.Errorf("failed to read response: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("lighthouse API error: %s", string(body))
 	}
 
 	plainBuf, err := utils.Decrypt(encryptionKey, cipherBuf)
