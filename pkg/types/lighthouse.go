@@ -17,74 +17,60 @@ type LighthouseClient struct {
 	Client      *http.Client
 }
 
-func (lh *LighthouseClient) UploadFile(plainBuf []byte, encryptionKey []byte) (*UploadResponse, error) {
+func (lh *LighthouseClient) UploadFile(plainBuf []byte, encryptionKey []byte, commitHash string) (string, error) {
 	cipherText, err := utils.Encrypt(encryptionKey, plainBuf)
 
-	var cipherBuf bytes.Buffer
-	cipherBuf.Write(cipherText)
+	var cipherBuffer bytes.Buffer
+	writer := multipart.NewWriter(&cipherBuffer)
 
-	var buf bytes.Buffer
-	writer := multipart.NewWriter(&buf)
-
-	// "file" is the field name from curl -F 'file=@...'
-	part, err := writer.CreateFormFile("file", "unnamed.jpeg")
+	part, err := writer.CreateFormFile("file", fmt.Sprintf("%v.git", commitHash))
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	_, err = part.Write(cipherText)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	writer.Close()
+	defer func(writer *multipart.Writer) {
+		_ = writer.Close()
+	}(writer)
 
-	// Create HTTP request to Lighthouse API
-	req, err := http.NewRequest("POST", "https://upload.lighthouse.storage/api/v0/add", &buf)
+	req, err := http.NewRequest("POST", "https://upload.lighthouse.storage/api/v0/add", &cipherBuffer)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %v", err)
+		return "", fmt.Errorf("failed to create request: %v", err)
 	}
 
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("Authorization", "Bearer "+lh.ApiKey)
 
-	// Send request
 	resp, err := lh.Client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to upload file: %v", err)
+		return "", fmt.Errorf("failed to upload file: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("lighthouse API error: %s", string(body))
+		return "", fmt.Errorf("lighthouse API error: %s", string(body))
 	}
 
-	// Read response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %v", err)
+		return "", fmt.Errorf("failed to read response: %v", err)
 	}
 
-	// Parse CID from response (Lighthouse returns just the CID string)
-	cid := strings.TrimSpace(string(body))
-
-	return &UploadResponse{
-		Success: true,
-		CID:     cid,
-		Message: "File uploaded successfully to Filecoin network",
-	}, nil
+	return strings.TrimSpace(string(body)), nil
 }
 
-func (lh *LighthouseClient) DownloadFile(cid string, key []byte) ([]byte, error) {
+func (lh *LighthouseClient) DownloadFile(cid string, encryptionKey []byte) ([]byte, error) {
 	var result map[string]string
-
 	err := json.Unmarshal([]byte(cid), &result)
 	if err != nil {
-		fmt.Println("Error unmarshalling JSON:", err)
 		return nil, err
 	}
-
-	fmt.Println(result)
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://gateway.lighthouse.storage/ipfs/%s", result["Hash"]), nil)
 	if err != nil {
@@ -93,47 +79,28 @@ func (lh *LighthouseClient) DownloadFile(cid string, key []byte) ([]byte, error)
 
 	req.Header.Set("Authorization", "Bearer "+lh.ApiKey)
 
-	// Send request
 	resp, err := lh.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download file: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("lighthouse API error: %s", string(body))
 	}
 
-	// Read file content
 	cipherBuf, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file content: %v", err)
 	}
 
-	//plainBuf, err := utils.Decrypt(key, cipherBuf)
-	plainBuf := cipherBuf
-	/*if err != nil {
+	plainBuf, err := utils.Decrypt(encryptionKey, cipherBuf)
+	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt file: %v", err)
-	}*/
+	}
 
 	return plainBuf, nil
-}
-
-func (lh *LighthouseClient) GetFileInfo(cid string, encryptionKey []byte) (*FileInfo, error) {
-	fileContent, err := lh.DownloadFile(cid, encryptionKey)
-	if err != nil {
-		return nil, err
-	}
-
-	contentType := http.DetectContentType(fileContent)
-
-	fileInfo := &FileInfo{
-		CID:      cid,
-		Filename: fmt.Sprintf("file_%s", cid[:8]),
-		Size:     int64(len(fileContent)),
-		Type:     contentType,
-	}
-
-	return fileInfo, nil
 }

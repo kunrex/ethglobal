@@ -9,8 +9,9 @@ import (
 )
 
 type Controller struct {
-	ActionContracts *types.ContractActions
-	Lighthouse      *types.LighthouseClient
+	EncryptionKeyBytes []byte
+	ActionContracts    *types.ContractActions
+	Lighthouse         *types.LighthouseClient
 }
 
 func (c Controller) calculateMetaData(hash [32]byte, commitHash string) ([]byte, error) {
@@ -58,12 +59,12 @@ func (c Controller) PushColdStorage(repository string, dotGitFile string, commit
 		return "", err
 	}
 
-	file, err := c.Lighthouse.UploadFile(bytes, c.Lighthouse.ApiKeyBytes)
+	cid, err := c.Lighthouse.UploadFile(bytes, c.EncryptionKeyBytes, commitHash)
 	if err != nil {
 		return "", err
 	}
 
-	transactionId, err := c.ActionContracts.SetProject(hash, []byte(file.CID), marshalledMetaData)
+	transactionId, err := c.ActionContracts.SetProject(hash, []byte(cid), marshalledMetaData)
 	if err != nil {
 		return "", err
 	}
@@ -96,7 +97,7 @@ func (c Controller) RetrieveColdStorage(repository string, output string) ([]byt
 		return nil, errors.New("failed to retrieve project code")
 	}
 
-	data, err := c.Lighthouse.DownloadFile(string(cid), c.Lighthouse.ApiKeyBytes)
+	data, err := c.Lighthouse.DownloadFile(string(cid), c.EncryptionKeyBytes)
 	if err != nil {
 		return nil, err
 	}
