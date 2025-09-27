@@ -7,8 +7,8 @@ contract ProjectRegistry {
         projects[index] = cid;
     }
 
-    function getProject(bytes32 indedx) public view returns (bytes32, bool) {
-        bytes32 cid = projects[indedx];
+    function getProject(bytes32 index) public view returns (bytes32, bool) {
+        bytes32 cid = projects[index];
         if (cid == bytes32(0)) {
             return (cid, false);
         }
