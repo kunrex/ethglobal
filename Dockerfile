@@ -1,5 +1,4 @@
-FROM ubuntu:22.04
-
+FROM golang:latest
 # Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -8,9 +7,6 @@ RUN apt-get update && apt-get install -y \
     openssh-server \
     git \
     && rm -rf /var/lib/apt/lists/*
-
-# Create SSH directory and set up SSH daemon
-RUN mkdir /var/run/sshd
 
 # Create git user with normal bash shell
 RUN useradd -m -d /home/git -s /bin/bash git
@@ -29,26 +25,18 @@ RUN touch /home/git/.ssh/authorized_keys && \
 RUN mkdir -p /home/git/git-shell-commands && \
     chown git:git /home/git/git-shell-commands
 
-# Create wrapper scripts for git commands
-COPY <<EOF /usr/local/bin/git-receive-pack
-#!/bin/bash
-echo "Receive pack called with: \$1"
+COPY go.mod go.sum ./
+RUN go mod download
+WORKDIR /
+COPY . .
 
-exec /usr/bin/git-receive-pack "\$REPO_PATH"
+RUN CGO_ENABLED=0 GOOS=linux go build -a -o /ccg ./cmd
 
-# upload the thing
+COPY .env /.env
+COPY .data /.data
 
-EOF
-
-COPY <<EOF /usr/local/bin/git-upload-pack
-#!/bin/bash
-echo "Upload pack called with: \$1"
-
-# pull from chain
-
-exec /usr/bin/git-upload-pack "\$REPO_PATH"
-EOF
-
+COPY scripts/git-receive-pack /usr/local/bin/git-receive-pack
+COPY scripts/git-upload-pack /usr/local/bin/git-upload-pack
 # Make wrapper scripts executable
 RUN chmod +x /usr/local/bin/git-receive-pack && \
     chmod +x /usr/local/bin/git-upload-pack
@@ -82,7 +70,8 @@ RUN echo '#!/bin/bash' > /home/git/git-shell-commands/git-upload-pack && \
 
 # Create repositories directory
 RUN mkdir -p /home/git/repositories && \
-    chown git:git /home/git/repositories
+    chown git:git /home/git/repositories && \
+    chown -R git:git /.data
 
 # Generate SSH host keys
 RUN ssh-keygen -A

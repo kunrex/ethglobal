@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	""
 	"encoding/json"
 	"errors"
 	"ethglobal/pkg/types"

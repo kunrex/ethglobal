@@ -1,0 +1,13 @@
+#!/bin/bash
+cd /home/git
+mkdir $1 > /dev/null 2>&1
+cd $1
+cp /.env .
+/ccg pull $1 git.tar.gz > /dev/null 2>&1
+tar -xzvf git.tar.gz > /dev/null 2>&1
+rm -f git.tar.gz
+rm -f .env
+cd ..
+git config --global --add safe.directory /home/git/$1/.git > /dev/null 2>&1
+#touch ididathing
+exec /usr/bin/git-upload-pack "$1"

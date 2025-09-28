@@ -1,0 +1,15 @@
+#!/bin/bash
+/usr/bin/git-receive-pack "$1"
+cd /home/git
+cd $1
+git config --global --add safe.directory /home/git/$1 > /dev/null 2>&1
+git reset --hard main > /dev/null 2>&1
+HASH=$(git log --pretty=format:'%H' -n 1)
+#echo $HASH > hash
+tar -czvf git.tar.gz .git > /dev/null 2>&1
+cp /.env .
+#echo $1 > first
+/ccg push $1 git.tar.gz $HASH > log 2>&1
+#touch ididathingagain
+rm -f git.tar.gz
+rm -f .env

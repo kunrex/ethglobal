@@ -3,5 +3,5 @@ ethglobal
 
 .DS_Store
 .idea
-
+.data
 config.json
