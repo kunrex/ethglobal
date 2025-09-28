@@ -79,10 +79,8 @@ func FileAddressToHex(address string) (string, error) {
 		return "", errors.New("address must start with t410f or f410f")
 	}
 
-	// Strip prefix (t410f / f410f)
-	encoded := strings.ToUpper(address[5:]) // base32 expects uppercase
+	encoded := strings.ToUpper(address[5:])
 
-	// RFC4648 base32 decoder, no padding
 	decoder := base32.StdEncoding.WithPadding(base32.NoPadding)
 	decoded, err := decoder.DecodeString(encoded)
 	if err != nil {
@@ -92,7 +90,6 @@ func FileAddressToHex(address string) (string, error) {
 		return "", errors.New("decoded payload too short")
 	}
 
-	// Drop last 4 bytes (checksum)
 	payload := decoded[:len(decoded)-4]
 	if len(payload) != 20 {
 		return "", fmt.Errorf("unexpected payload length %d (want 20)", len(payload))

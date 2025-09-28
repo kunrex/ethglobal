@@ -8,6 +8,7 @@ import (
 	"ethglobal/pkg/controllers"
 	"ethglobal/pkg/lighthouse"
 	"ethglobal/pkg/types"
+	"ethglobal/pkg/utils"
 	"fmt"
 	"github.com/spf13/cobra"
 	"log"
@@ -34,7 +35,10 @@ func main() {
 		Short: "address -> Wallet Address",
 		Long:  "Fetches the address of the internal wallet",
 		Run: func(cmd *cobra.Command, args []string) {
-			log.Printf(controller.ActionContracts.Account.Address.Hex())
+			hex := controller.ActionContracts.Account.Address.Hex()
+			log.Printf("Address: %v", hex)
+			hex, _ = utils.FileAddressToHex(hex)
+			log.Printf("ETH Address: %v", hex)
 		},
 	}
 

@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func initKeystoreWallet(ks *keystore.KeyStore, configuration *types.Configuration) (*accounts.Account, error) {
+func initKeystoreWallet(ks *keystore.KeyStore) (*accounts.Account, error) {
 	switch len(ks.Accounts()) {
 	case 0:
 		{
@@ -36,7 +36,7 @@ func initContract(contractAddress common.Address, client *ethclient.Client) (*ab
 
 func InitContractActions(configuration *types.Configuration) (*types.ContractActions, *context.Context, error) {
 	ks := keystore.NewKeyStore(configuration.KeystoreDirectory, keystore.StandardScryptN, keystore.StandardScryptP)
-	accountPtr, err := initKeystoreWallet(ks, configuration)
+	accountPtr, err := initKeystoreWallet(ks)
 	if err != nil {
 		return nil, nil, err
 	}
